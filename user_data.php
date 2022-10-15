@@ -1,86 +1,30 @@
 <?php
-//index.php
+if (isset($_POST['submit'])) {
+    // Collect the form data.
+    $name = isset($_POST['name']) ? $_POST['name'] : '';
+    $email = isset($_POST['email']) ? $_POST['email'] : '';
+    $dob = isset($_POST['dob']) ? $_POST['dob'] : '';
+    $gender = isset($_POST['gender']) ? $_POST['gender'] : '';
+    $country = isset($_POST['country']) ? $_POST['country'] : '';
 
-$error = '';
-$name = '';
-$email = '';
-$dob = '';
-$gender = '';
-$country = '';
+    if (!isset($errors)) {
+        // The header row of the CSV.
+        $header = "name,email,dob,gender,country\n";
+        // The data of the CSV.
+        $data = "$name,$email,$dob,$gender,$country\n";
+        
+        $fileName = dirname(__DIR__) . "/formdata-" . date("d-m-y-h-i-s") . ".csv";
 
-function clean_text($string)
-{
- $string = trim($string);
- $string = stripslashes($string);
- $string = htmlspecialchars($string);
- return $string;
+        /*
+         * Create the CSV file.
+         * If file exists, append the data to it. Otherwise create the file.
+         */
+        if (file_exists($fileName)) {
+            // Add only data. The header is already added in the existing file.
+            file_put_contents($fileName, $data, FILE_APPEND);
+        } else {
+            // Add CSV header and data.
+            file_put_contents($fileName, $header . $data);
+        }
+    }
 }
-
-if(isset($_POST["submit"]))
-{
- if(empty($_POST["name"]))
- {
-  $error .= '<p><label class="text-danger">Please Enter your Name</label></p>';
- }
- else
- {
-  $name = clean_text($_POST["name"]);
-  if(!preg_match("/^[a-zA-Z ]*$/",$name))
-  {
-   $error .= '<p><label class="text-danger">Only letters and white space allowed</label></p>';
-  }
- }
- if(empty($_POST["email"]))
- {
-  $error .= '<p><label class="text-danger">Please Enter your Email</label></p>';
- }
- else
- {
-  $email = clean_text($_POST["email"]);
-  if(!filter_var($email, FILTER_VALIDATE_EMAIL))
-  {
-   $error .= '<p><label class="text-danger">Invalid email format</label></p>';
-  }
- }
- if(empty($_POST["dob"]))
- {
-  $error .= '<p><label class="text-danger">Dob is required</label></p>';
- }
- else
- {
-  $dob = clean_text($_POST["dob"]);
- }
- if(empty($_POST["country"]))
- {
-  $error .= '<p><label class="text-danger">Country is required</label></p>';
- }
- else
- {
-  $country = clean_text($_POST["country"]);
- }
-
- if($error == '')
- {
-  $file_open = fopen("contact_data.csv", "a");
-  $no_rows = count(file("contact_data.csv"));
-  if($no_rows > 1)
-  {
-   $no_rows = ($no_rows - 1) + 1;
-  }
-  $form_data = array(
-   'sr_no'  => $no_rows,
-   'name'  => $name,
-   'email'  => $email,
-   'dob' => $dob,
-   'country' => $country
-  );
-  fputcsv($file_open, $form_data);
-  $error = '<label class="text-success">Thank you for contacting us</label>';
-  $name = '';
-  $email = '';
-  $dob = '';
-  $country = '';
- }
-}
-
-?>
